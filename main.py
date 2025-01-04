@@ -8,13 +8,13 @@ import os
 import toml
 
 with open('.streamlit/secrets.toml', 'r') as file:
-    data = toml.load(file)
+    data = toml.load(file)['connections']['jobhunting']
 
 config = {
-    'host': data['mysql']['host'],
-    'port': data['mysql']['port'],
-    'user': data['mysql']['username'],
-    'password': data['mysql']['password']
+    'host': data['host'],
+    'port': data['port'],
+    'user': data['username'],
+    'password': data['password']
 }
 
 connection = pymysql.connect(**config)

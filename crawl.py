@@ -32,7 +32,7 @@ def run(playwright: Playwright, url, jobType, max_num=30) -> None:      # 输入
     logger.info(f'Start crawling: {url}')
     browser = playwright.chromium.launch(headless=False)
     
-    context = browser.new_context()
+    context = browser.new_context(viewport={'width': 600, 'height': 400})
     page = context.new_page()
     page.goto(url)
     
