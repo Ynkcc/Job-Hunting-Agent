@@ -1,5 +1,5 @@
 secrets.toml
 __pycache__
 cache
-test
+test*
 apps

@@ -2,34 +2,21 @@ import pymysql
 from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
 import asyncio
-
-# MySQL数据库连接配置
-db_config = {
-    'host': 'localhost',
-    'user': 'rebibabo',
-    'password': '123456',
-    'database': 'jobhunting',
-    'charset': 'utf8mb4'
-}
+from APIDataClass import connection, cursor
 
 def get_job_urls():
     """从数据库中获取待爬取的URL"""
-    conn = pymysql.connect(**db_config)
-    cursor = conn.cursor()
+    cursor = connection.cursor()
     cursor.execute("SELECT url FROM job WHERE description IS NULL")  # 仅获取description为空的行
     urls = cursor.fetchall()
     cursor.close()
-    conn.close()
+    connection.close()
     return [url[0] for url in urls]  # 提取出url列，返回列表
 
 def insert_job_description(url, description):
     """将抓取的工作描述插入数据库"""
-    conn = pymysql.connect(**db_config)
-    cursor = conn.cursor()
     cursor.execute("UPDATE job SET description = %s WHERE url = %s", (description, url))
-    conn.commit()
-    cursor.close()
-    conn.close()
+    connection.commit()
 
 async def fetch_job_description(url, page):
     """使用Playwright抓取网页内容"""
