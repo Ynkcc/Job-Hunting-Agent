@@ -4,5 +4,15 @@ playwright
 pymysql
 wordcloud
 plotly
+streamlit
 pandas
 numpy
+sqlalchemy
+loguru
+langchain
+requests
+bs4
+pdfminer
+langgraph 
+langchain_openai 
+langchain_community

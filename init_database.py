@@ -69,13 +69,13 @@ def init():
         logger.info('创建 city 表')
         cursor.execute('''
             CREATE TABLE city (
-                province VARCHAR(20) NOT NULL,
-                city VARCHAR(20) NOT NULL,
-                region VARCHAR(20) NOT NULL,
-                city_id VARCHAR(20) NOT NULL,
-                region_code VARCHAR(20) NOT NULL,
-                longitude FLOAT NOT NULL,
-                latitude FLOAT NOT NULL,
+                province VARCHAR(20) NOT NULL COMMENT '省份',
+                city VARCHAR(20) NOT NULL COMMENT '城市',
+                region VARCHAR(20) NOT NULL COMMENT '区域',
+                city_id VARCHAR(20) NOT NULL COMMENT '城市代码',
+                region_code VARCHAR(20) NOT NULL COMMENT '区域代码/邮编',
+                longitude FLOAT NOT NULL COMMENT '经度',
+                latitude FLOAT NOT NULL COMMENT '纬度',
                 PRIMARY KEY (province, city, region),
                 CHECK (longitude >= -180 AND longitude <= 180),
                 CHECK (latitude >= -90 AND latitude <= 90)
@@ -110,9 +110,9 @@ def init():
         logger.info('创建 industry 表')
         cursor.execute('''
             CREATE TABLE industry (
-                type VARCHAR(20) NOT NULL,
-                name VARCHAR(20) NOT NULL,
-                code VARCHAR(20) NOT NULL,
+                type VARCHAR(20) NOT NULL COMMENT '行业类型',
+                name VARCHAR(20) NOT NULL COMMENT '岗位名称',
+                code VARCHAR(20) NOT NULL COMMENT '行业代码',
                 PRIMARY KEY (code)
             )'''
         )
@@ -137,10 +137,10 @@ def init():
         logger.info('创建 jobtype 表')
         cursor.execute('''
             CREATE TABLE jobtype (
-                type VARCHAR(20) NOT NULL,
-                name VARCHAR(20) NOT NULL,
-                code VARCHAR(20) NOT NULL,
-                description VARCHAR(200) NOT NULL
+                type VARCHAR(20) NOT NULL COMMENT '岗位类型',
+                name VARCHAR(20) NOT NULL COMMENT '岗位名称',
+                code VARCHAR(20) NOT NULL COMMENT '岗位代码',
+                description VARCHAR(200) NOT NULL COMMENT '岗位描述',
             )'''
         )
         
@@ -165,29 +165,29 @@ def init():
         logger.info('创建 job 表')
         cursor.execute('''
             CREATE TABLE job (
-                jobname VARCHAR(100) NOT NULL,
-                company VARCHAR(50) NOT NULL,
-                url VARCHAR(500) NOT NULL,
-                salary VARCHAR(20),
-                lsalary SMALLINT,
-                hsalary SMALLINT,
-                date DATETIME,
-                city VARCHAR(20) NOT NULL,
-                region VARCHAR(20),
-                experience VARCHAR(20),
-                degree VARCHAR(20),
-                address VARCHAR(100),
-                industry VARCHAR(20),
-                jobtype VARCHAR(30),    
-                stage VARCHAR(20),
-                scale VARCHAR(30),
-                labels VARCHAR(300),
-                specialty VARCHAR(300),
-                description TEXT,
-                bossName VARCHAR(50),
-                bossTitle VARCHAR(50),
-                sent BOOLEAN DEFAULT FALSE,
-                reply BOOLEAN DEFAULT FALSE,
+                jobname VARCHAR(100) NOT NULL COMMENT '职位名称',
+                company VARCHAR(50) NOT NULL COMMENT '公司名称',
+                url VARCHAR(500) COMMENT '职位链接',
+                salary VARCHAR(20) COMMENT '薪水',
+                lsalary SMALLINT COMMENT '最低薪水',
+                hsalary SMALLINT COMMENT '最高薪水',
+                date DATETIME COMMENT '获取职位时的日期',
+                city VARCHAR(20) NOT NULL COMMENT '城市',
+                region VARCHAR(20) COMMENT '区域',
+                experience VARCHAR(20) COMMENT '工作经验要求',
+                degree VARCHAR(20) COMMENT '学历要求',
+                address VARCHAR(100) COMMENT '工作地址',
+                industry VARCHAR(20) COMMENT '行业',
+                jobtype VARCHAR(30) COMMENT '职位类型,    
+                stage VARCHAR(20) COMMENT '融资阶段',
+                scale VARCHAR(30) COMMENT '公司人员规模',
+                labels VARCHAR(300) COMMENT '工作技能需求标签',
+                specialty VARCHAR(300) COMMENT '职位特长标签',
+                description TEXT COMMENT '职位描述',
+                bossName VARCHAR(50) COMMENT '招聘人员姓名',
+                bossTitle VARCHAR(50) COMMENT '招聘人员职位',
+                sent SMALLINT DEFAULT 0 COMMENT '是否已投递简历',
+                clicked SMALLINT DEFAULT 0 COMMENT '是否收到回复',
                 PRIMARY KEY (jobname, company, city)
             )'''
         )

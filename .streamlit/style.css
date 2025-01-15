@@ -1,0 +1,50 @@
+.job-title {
+    font-size: 40px;
+    font-weight: bold;
+    color: #FFFFFF; /* 红色 */
+}
+.salary {
+    font-size: 20px;
+    font-weight: bold;
+    color: #FF6F61; /* 红橙色 */
+}
+.info {
+    font-size: 16px;
+    color: #AAAAAA; /* 浅蓝色 */
+}
+.tags {
+    font-size: 16px;
+    color: #1E90FF; /* 蓝色 */
+}
+.company-name {
+    font-size: 20px;
+    font-weight: bold;
+    color: #FFA500; /* 橙色 */
+}
+.row {
+    display: flex;
+    align-items: center;
+}
+.column {
+    flex: 1; /* 每列宽度相等 */
+    margin: 0 15px; /* 增加列之间的间距 */
+}
+.info1 {
+    color: #FF6347;
+    font-size: 20px;
+    font-weight: bold;
+}
+.info2 {
+    color: #444444;
+    font-size: 16px;
+    background-color: #EEEEEE; /* 设置背景颜色 */
+    padding: 5px;
+    border-radius: 8px;
+}
+.info3 {
+    color: #444444;
+    font-size: 16px;
+    background-color: #EEEEEE; /* 设置背景颜色 */
+    padding: 5px;
+    border-radius: 8px;
+}

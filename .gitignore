@@ -3,3 +3,8 @@ __pycache__
 cache
 test*
 apps
+*.pdf
+*.png
+mymodels
+Awesome-RecSystem-Models
+deepctr

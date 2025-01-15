@@ -5,7 +5,7 @@ from APIDataClass import cursor
 import plotly.graph_objects as go
 from wordcloud import WordCloud
 
-st.set_page_config(page_title="Job Analyse", page_icon="📈", layout="wide")
+st.set_page_config(page_title="招聘岗位分析", page_icon="📈", layout="wide")
 
 # 从数据库中加载数据
 @st.cache_data
@@ -42,31 +42,38 @@ def draw_salary_bar_chart(df, group_col):
         barmode='stack',
         # title=f'Salary Analysis by {group_col.capitalize()}',
         xaxis_title=group_col.capitalize(),
-        yaxis_title='Salary (W RMB / Year)',
+        yaxis_title='年薪(万RMB)',
         height=600
     )
     st.plotly_chart(fig)
 
 # 主程序
 def main():
-    st.title("Job Analyse")
+    st.title("招聘岗位分析")
 
     jobtypes = get_data("SELECT DISTINCT jobtype FROM job;")['jobtype'].tolist()
     cities = get_data("SELECT DISTINCT city FROM job;")['city'].tolist()
+    industries = get_data("SELECT DISTINCT industry FROM job;")['industry'].tolist()
     degrees = get_data("SELECT DISTINCT degree FROM job;")['degree'].tolist()
     experiences = get_data("SELECT DISTINCT experience FROM job;")['experience'].tolist()
     
-    "### Job Type Counts"
+    "### 职位数量分析"
     data = get_data("SELECT city, jobtype FROM job")
 
     selected_cities = st.multiselect(
-        "Please select cities (if no city selected, all cities will be counted)",
-        options=['All'] + cities,
-        default=['All']
+        "请选择城市（可多选，如果不选择，则默认显示全部城市）",
+        options=['不限'] + cities,
+        default=['不限']
+    )
+    
+    selected_industry = st.selectbox(
+        "请选择行业",
+        options=industries,
+        index=0
     )
 
     # 筛选数据
-    if 'All' not in selected_cities:
+    if '不限' not in selected_cities:
         filtered_data = data[data['city'].isin(selected_cities)]
     else:
         filtered_data = data
@@ -93,7 +100,7 @@ def main():
         fig.update_layout(xaxis_tickangle=45)
         st.plotly_chart(fig)
     else:
-        st.warning("No data found.")
+        st.warning("没有找到符合条件的岗位数据。")
 
 
     # 构建SQL查询语句
@@ -101,60 +108,60 @@ def main():
     df = get_data(query)
 
     # 可视化薪资与各因素的关系
-    st.write('### Salary Analysis')
+    st.write('### 薪资分析')
         
     if not df.empty:
-        if st.checkbox('Show salary and jobtype relationship', value=True): 
+        if st.checkbox('薪资与职位类型关系', value=True): 
             draw_salary_bar_chart(df, 'jobtype')
-        if st.checkbox('Show salary and experience relationship'):
+        if st.checkbox('薪资与工作经验关系'):
             draw_salary_bar_chart(df, 'experience')
-        if st.checkbox('Show salary and degree relationship'):
+        if st.checkbox('薪资与学历要求关系'):
             draw_salary_bar_chart(df, 'degree')
-        if st.checkbox('Show salary and city relationship'):
+        if st.checkbox('薪资与城市关系'):
             draw_salary_bar_chart(df, 'city')
     else:
-        st.warning("No data found based on the selected filters.")
+        st.warning("没有找到符合条件的岗位数据。")
 
     # 分析薪资的直方图
     
-    "### Salary Distribution"
+    "### 薪资直方图"
     selected_jobtype = st.multiselect(
-        "Please select job types",
-        options=['All'] + jobtypes,
-        default=['All']
+        "请选择职位类型",
+        options=['不限'] + jobtypes,
+        default=['不限']
     )
 
     selected_city = st.multiselect(
-        "Please select cities",
-        options=['All'] + cities,
-        default=['All']
+        "请选择城市",
+        options=['不限'] + cities,
+        default=['不限']
     )
 
     selected_degree = st.multiselect(
-        "Please select degrees",
-        options=['All'] + degrees,
-        default=['All']
+        "请选择学历要求",
+        options=['不限'] + degrees,
+        default=['不限']
     )
 
     selected_experience = st.multiselect(
-        "Please select experiences",
-        options=['All'] + experiences,
-        default=['All']
+        "请选择工作经验",
+        options=['不限'] + experiences,
+        default=['不限']
     )
 
     filtered_data = df
 
     # 检查是否选择了“不限”，如果没有选择“不限”，则应用相应的筛选条件
-    if 'All' not in selected_jobtype:
+    if '不限' not in selected_jobtype:
         filtered_data = filtered_data[filtered_data['jobtype'].isin(selected_jobtype)]
 
-    if 'All' not in selected_city:
+    if '不限' not in selected_city:
         filtered_data = filtered_data[filtered_data['city'].isin(selected_city)]
 
-    if 'All' not in selected_degree:
+    if '不限' not in selected_degree:
         filtered_data = filtered_data[filtered_data['degree'].isin(selected_degree)]
 
-    if 'All' not in selected_experience:
+    if '不限' not in selected_experience:
         filtered_data = filtered_data[filtered_data['experience'].isin(selected_experience)]
 
     # 选择需要的列并去除缺失值
@@ -167,25 +174,27 @@ def main():
         color='Salary Type',
         barmode='overlay',  # 使用叠加模式
         nbins=300,  # 设置直方图的柱子数量
-        title='Histogram of Low and High Salaries',
+        title='工资直方图',
         labels={'Salary': 'Salary', 'Salary Type': 'Salary Type'},
         color_discrete_map={'lsalary': 'yellow', 'hsalary': 'red'}
     )
     fig.update_traces(marker_opacity=0.6)  # 设置透明度为0.6
     fig.update_layout(
-        xaxis_title='Salary (W RMB / Year)',
-        yaxis_title='Count',
+        xaxis_title='年薪(万RMB)',
+        yaxis_title='个数',
         height=600
     )
     st.plotly_chart(fig)
     
-    "### Job Skill Label Word Cloud "
+    "### 工作技能需求词云图"
     selected_jobtype = st.selectbox(
-        "Please select job type",
+        "请选择职位类型",
         options=jobtypes,
         index=0
     )
 
+    tips_placeholder = st.empty()
+    tips_placeholder.write('正在分析职位描述中的技能要求...')
     data = get_data(f"SELECT labels FROM job WHERE jobtype='{selected_jobtype}'")
     # 每一个skills是用"，"分割的
     skill_freq = {}
@@ -197,10 +206,10 @@ def main():
     wordcloud = WordCloud(background_color='white', 
         width=2000, 
         height=600,
-        font_path='C:\Windows\Fonts\msyhbd.ttc'
+        font_path=r'C:\Windows\Fonts\msyh.ttc'
     ).generate_from_frequencies(skill_freq)
-    st.image(wordcloud.to_image(), use_column_width=True)
-    
+    st.image(wordcloud.to_image(), use_container_width=True)
+    tips_placeholder.empty()
     
 if __name__ == "__main__":
     main()
