@@ -14,5 +14,7 @@ requests
 bs4
 pdfminer
 langgraph 
+PyMuPDF
+uiautomation
 langchain_openai 
 langchain_community

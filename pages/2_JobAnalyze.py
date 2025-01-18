@@ -166,6 +166,7 @@ def main():
 
     # 选择需要的列并去除缺失值
     filtered_data = filtered_data[["lsalary", "hsalary"]].dropna()
+    filtered_data = filtered_data[(filtered_data["lsalary"] != 0) & (filtered_data["hsalary"] != 0)]
 
     df_melted = filtered_data.melt(var_name='Salary Type', value_name='Salary')
     fig = px.histogram(

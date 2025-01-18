@@ -70,9 +70,9 @@ class JobInfo:
         self.clicked = clicked
         try:
             if '面议' in salary or '天' in salary:      # 计算不准确薪资，跳过
-                salary = None
-                lsalary = None
-                hsalary = None
+                salary = 0
+                lsalary = 0
+                hsalary = 0
             else:
                 if '薪' in salary:
                     months = int(salary.split('·')[1][:-1])     # 月薪 * (12 - 18)
@@ -87,13 +87,13 @@ class JobInfo:
                     lsalary = int(prefix.split('-')[0])*months//10000
                     hsalary = int(prefix.split('-')[1])*months//10000
                 else:
-                    salary = None
-                    lsalary = None
-                    hsalary = None
+                    salary = 0
+                    lsalary = 0
+                    hsalary = 0
         except:
-            salary = None
-            lsalary = None
-            hsalary = None
+            salary = 0
+            lsalary = 0
+            hsalary = 0
         
         self.lsalary = lsalary
         self.hsalary = hsalary
@@ -101,7 +101,7 @@ class JobInfo:
         if '·' in address:      # 如果还细分了地区
             self.region = address.split('·')[1]
         else:
-            self.region = None
+            self.region = ''
                     
     def commit_to_db(self):
         cursor.execute(f"SELECT * FROM job WHERE jobname='{self.jobname}' AND company='{self.company}' AND city='{self.city}'")
@@ -121,7 +121,7 @@ class JobInfo:
                 '{self.stage}', '{self.scale}', '{self.experience}', '{self.degree}', '{self.specialty}', '{self.bossName}', 
                 '{self.bossTitle}', '{self.labels}', '{self.description}', '{self.sent}', '{self.clicked}')'''
             )
-            connection.commit()
+        connection.commit()
         
     @classmethod    
     def from_db(cls, jobname, company, city):
@@ -345,15 +345,14 @@ class CachedIterator:
         return len(self.combinations)
     
 if __name__ == '__main__':
-    # request = JobQueryRequest(
-    #     keyword='大模型',
-    #     city='深圳',
-    #     degree=['本科'],
-    #     industry=['互联网'],
-    #     position=['数据挖掘'],
-    #     jobType='全职',
-    # )
-    request = JobQueryRequest(position=['数据开发'])
+    request = JobQueryRequest(
+        keyword='大模型',
+        city='深圳',
+        degree=['本科'],
+        industry=['互联网'],
+        position=['数据挖掘'],
+        jobType='全职',
+    )
     print(request.to_dict())
     print(request.to_url())
     

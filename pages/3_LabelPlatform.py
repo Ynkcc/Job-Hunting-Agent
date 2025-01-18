@@ -22,15 +22,10 @@ def get_data(query):
     df = pd.DataFrame(data, columns=[desc[0] for desc in cursor.description])
     return df
 
-def crawling_thread(job_queue, jobType, url):
-    with sync_playwright() as playwright, open('cache/dataset.jsonl', 'a', encoding='utf-8') as f:
+def crawling_thread(job_queue, jobType, url, output_file):
+    with sync_playwright() as playwright, open(output_file, 'a', encoding='utf-8') as f:
         browser = playwright.chromium.launch(headless=False)
-        if not os.path.exists('cache/state.json'):
-            context = browser.new_context()
-            login(context)
-            context.storage_state(path="cache/state.json")
-        else:
-            context = browser.new_context(storage_state="cache/state.json")
+        context = login(browser)
         job_set = set()
         page = context.new_page()
         page.goto(url)
@@ -46,7 +41,7 @@ def crawling_thread(job_queue, jobType, url):
         # window = pyautogui.getWindowsWithTitle(window_title)[0]
         # window.minimize()
         
-        num = min(int(page.locator(".options-pages a").all_inner_texts()[-2]), 1)
+        num = min(int(page.locator(".options-pages a").all_inner_texts()[-2]), 10)
         for i in range(1, num+1):
             try:
                 page.wait_for_selector(".job-list-box .job-card-wrapper", timeout=10000)
@@ -59,7 +54,7 @@ def crawling_thread(job_queue, jobType, url):
                     continue
             job_lists = page.locator(".job-list-box .job-card-wrapper").all()       # 获取当前页所有职位
             for job in job_lists:
-                jobinfo = get_job_info(job, jobType, allow_duplicate=True)
+                jobinfo = get_job_info(job, jobType)
                 if jobinfo is None:
                     continue
                 if hash(jobinfo) in job_set:
@@ -72,7 +67,10 @@ def crawling_thread(job_queue, jobType, url):
                     logger.warning(f"Failed to load {jobinfo.jobname}")
                     continue
                 description = page2.locator(".job-sec-text").all_inner_texts()[0]
-                page2.wait_for_selector(".look-job-box .look-job-list a")
+                try:
+                    page2.wait_for_selector(".look-job-box .look-job-list a", timeout=10000)
+                except:
+                    continue
                 other_related_jobs = page2.locator(".look-job-box .look-job-list a").all()
                 urls = []
                 for related_job in other_related_jobs:
@@ -83,7 +81,7 @@ def crawling_thread(job_queue, jobType, url):
                 try:
                     jobinfo.commit_to_db()
                 except Exception as e:
-                    pass        # duplicate key
+                    logger.error(f"Failed to commit to db: {e}")
                 data = {"jobname": jobinfo.jobname, "company": jobinfo.company, "city": jobinfo.city, "url": jobinfo.url, "related_jobs": urls}
                 f.write(json.dumps(data, ensure_ascii=False) + '\n')
                 time.sleep(0.5)
@@ -151,40 +149,61 @@ def main():
     
     TotalJobInfo = []
     
-    if st.button("提交"):
-        bar = st.progress(0, "正在获取职位信息，请稍候...")
-        
-        request = JobQueryRequest(
-            city=selected_city if '不限' not in selected_city else '',
-            areaBusiness=selected_region if '不限' != selected_region else '',
-            position=selected_jobtype if '不限' not in selected_jobtype else [],
-            industry=selected_industry if '不限' != selected_industry else [],
-            degree=selected_degree if '不限' not in selected_degree else [],
-            experience=selected_experience if '不限' not in selected_experience else [],
-            scale=selected_scale if '不限' not in selected_scale else [],
-            stage=selected_stage if '不限' not in selected_stage else [],
-            keyword=keyword
-        )
-        url = request.to_url()
-        job_buffer = multiprocessing.Queue()
-        writer_process = multiprocessing.Process(target=crawling_thread, args=(job_buffer, request.jobType, url))
-        writer_process.start()
-        
-        while True:
-            try:
-                item = job_buffer.get()
-                if item is None:
-                    break
-                if isinstance(item, tuple):
-                    bar.progress(item[0]/item[1], f"已完成{item[0]}页，共{item[1]}页")
-                else:
-                    TotalJobInfo.append(item)
-            except KeyboardInterrupt:
-                writer_process.terminate()
-                break
-            except Exception as e:
-                logger.error(e)
-                pass
+    if not os.path.exists('cache/dataset/'):
+        os.makedirs('cache/dataset/')
+    output_dirs = os.listdir('cache/dataset/')
+    selected_file_or_new = st.selectbox(
+        "加载已有数据集或输入新数据集名称：",
+        options=["<输入新数据集名称>"] + output_dirs
+    )
+    if selected_file_or_new == "<输入新数据集名称>":
+        new_dataset_name = st.text_input("请输入想要保存的数据集名称：", placeholder='例如：original')
+        if new_dataset_name:
+            if new_dataset_name in output_dirs:
+                st.warning("数据集已存在！")
+            output_file = f'cache/dataset/{new_dataset_name}/raw_data.jsonl'
+            if st.button("提交"):
+                bar = st.progress(0, "正在获取职位信息，请稍候...")
+                
+                request = JobQueryRequest(
+                    city=selected_city if '不限' not in selected_city else '',
+                    areaBusiness=selected_region if '不限' != selected_region else '',
+                    position=selected_jobtype if '不限' not in selected_jobtype else [],
+                    industry=selected_industry if '不限' != selected_industry else [],
+                    degree=selected_degree if '不限' not in selected_degree else [],
+                    experience=selected_experience if '不限' not in selected_experience else [],
+                    scale=selected_scale if '不限' not in selected_scale else [],
+                    stage=selected_stage if '不限' not in selected_stage else [],
+                    keyword=keyword
+                )
+                url = request.to_url()
+                job_buffer = multiprocessing.Queue()
+                writer_process = multiprocessing.Process(target=crawling_thread, args=(job_buffer, request.jobType, url, output_file))
+                writer_process.start()
+                
+                while True:
+                    try:
+                        item = job_buffer.get()
+                        if item is None:
+                            break
+                        if isinstance(item, tuple):
+                            bar.progress(item[0]/item[1], f"已完成{item[0]}页，共{item[1]}页")
+                        else:
+                            TotalJobInfo.append(item)
+                    except KeyboardInterrupt:
+                        writer_process.terminate()
+                        break
+                    except Exception as e:
+                        logger.error(e)
+                        pass
+    else:
+        with open(f'cache/dataset/{selected_file_or_new}/raw_data.jsonl', 'r', encoding='utf-8') as f:
+            for line in f:
+                data = json.loads(line)
+                jobinfo = JobInfo.from_db(city=data['city'], company=data['company'], jobname=data['jobname'])
+                TotalJobInfo.append(jobinfo)
+    
+    
 
     render(TotalJobInfo)
         
