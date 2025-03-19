@@ -74,7 +74,7 @@ def startChat(page, file_path):
     page.locator(".btn-container .btn-startchat").click()       # 立即沟通
     page.wait_for_selector("#chat-input")
     input_box = page.locator("#chat-input")
-    input_box.fill("您好，我是24届本科生，毕业于华中科技大学，已经拿到了港中文的研究生Offer了，明年9月份入学。我对这个岗位非常感兴趣，可以立即到岗，一周全勤，可连续实习6个月以上，这是我的简历，如果觉得合适的话，欢迎继续沟通，期待您的回复！")
+    input_box.fill("你好")
     page.locator(".toolbar-btn-content [type=file]").click()            # 点击发送简历照片
     time.sleep(1)
     openWindow = WindowControl(name='打开')

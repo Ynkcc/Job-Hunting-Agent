@@ -1,5 +1,5 @@
 from typing import Literal, List
-from tool import timer
+
 from loguru import logger
 import pymysql
 import requests
@@ -21,7 +21,7 @@ connection = pymysql.connect(**config)
 
 cursor = connection.cursor()
     
-@timer
+
 def init():
     if not os.path.exists('metadata'):
         logger.info('创建 metadata 目录')
@@ -141,6 +141,7 @@ def init():
                 name VARCHAR(20) NOT NULL COMMENT '岗位名称',
                 code VARCHAR(20) NOT NULL COMMENT '岗位代码',
                 description VARCHAR(200) NOT NULL COMMENT '岗位描述',
+                PRIMARY KEY (code)
             )'''
         )
         
@@ -155,10 +156,13 @@ def init():
                 jobtype_name = sub_jobtype["name"]
                 jobtype_code = sub_jobtype["positionCode"]
                 jobtype_description = sub_jobtype["level2Description"]
-                cursor.execute('''
-                    INSERT INTO jobtype (type, name, code, description)
-                    VALUES (%s, %s, %s, %s)
-                    ''', (jobtype_type, jobtype_name, jobtype_code, jobtype_description)
+                # 检查数据库中是否已存在相同的 code 值
+                cursor.execute("SELECT code FROM jobtype WHERE code = %s", (jobtype_code,))
+                if cursor.rowcount == 0:
+                    cursor.execute('''
+                        INSERT INTO jobtype (type, name, code, description)
+                        VALUES (%s, %s, %s, %s)
+                        ''', (jobtype_type, jobtype_name, jobtype_code, jobtype_description)
                     )
                 
     if 'job' not in tables:
@@ -178,7 +182,7 @@ def init():
                 degree VARCHAR(20) COMMENT '学历要求',
                 address VARCHAR(100) COMMENT '工作地址',
                 industry VARCHAR(20) COMMENT '行业',
-                jobtype VARCHAR(30) COMMENT '职位类型,    
+                jobtype VARCHAR(30) COMMENT '职位类型',
                 stage VARCHAR(20) COMMENT '融资阶段',
                 scale VARCHAR(30) COMMENT '公司人员规模',
                 labels VARCHAR(300) COMMENT '工作技能需求标签',

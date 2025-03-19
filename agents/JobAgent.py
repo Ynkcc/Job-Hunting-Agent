@@ -8,7 +8,12 @@ import numpy as np
 import fitz  # pip install PyMuPDF
 import re
 import os
-LLM = OpenAI()
+import toml
+with open('.streamlit/secrets.toml', 'r') as file:
+    data = toml.load(file)["openai"]
+    api_key=data["api_key"]
+    base_url=data["base_url"]
+LLM = OpenAI(api_key=api_key,base_url=base_url)
 Message: TypeAlias = Dict[Literal["role", "content"], str]
 
 def get_response(messages: List[Message], 

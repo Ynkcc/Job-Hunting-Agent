@@ -7,7 +7,12 @@ from typing_extensions import TypedDict
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from APIDataClass import JobQueryRequest
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+import toml
+with open('.streamlit/secrets.toml', 'r') as file:
+    data = toml.load(file)["openai"]
+    api_key=data["api_key"]
+    base_url=data["base_url"]
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0,api_key=api_key,base_url=base_url)
 
 class State(TypedDict):
     messages: Annotated[list, add_messages]

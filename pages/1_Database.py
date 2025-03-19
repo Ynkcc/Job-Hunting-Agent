@@ -1,8 +1,17 @@
 import streamlit as st
+import toml
 
 def main():
     st.set_page_config(page_title="数据库", page_icon="📊", layout="wide")
     "#### 数据库SQL查询工具 🔍️"
+
+    # Load secrets from secrets.toml
+    try:
+        secrets = toml.load(".streamlit/secrets.toml")
+        st.secrets = secrets
+    except FileNotFoundError:
+        st.error("secrets.toml file not found. Please make sure it exists in the .streamlit directory.")
+        return
 
     select_table = 'job'
     conn = st.connection("jobhunting")

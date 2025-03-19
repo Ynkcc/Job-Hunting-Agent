@@ -1,4 +1,3 @@
-from tool import timer
 import pymysql
 from typing import List
 import itertools

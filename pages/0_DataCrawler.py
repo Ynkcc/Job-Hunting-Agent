@@ -1,5 +1,4 @@
 import streamlit as st
-from tool.decorators import cache
 from APIDataClass import cursor, JobQueryRequest, CachedIterator
 from playwright.sync_api import Playwright, sync_playwright
 from crawl import login, get_job_info
